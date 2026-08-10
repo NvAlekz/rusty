@@ -15,6 +15,11 @@ class Settings(BaseSettings):
     query_timeout: int = 5
     query_retries: int = 2
 
+    # Servidor fijo (modo servidor): si target_server_ip está definido,
+    # el tracker monitoriza SIEMPRE ese servidor, sin depender del log local.
+    target_server_ip: str = ""
+    target_server_port: int = 28015
+
     # Backend
     backend_host: str = "127.0.0.1"
     backend_port: int = 8000

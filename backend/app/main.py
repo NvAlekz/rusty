@@ -32,11 +32,12 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS para el frontend
+# CORS abierto para que cualquier cliente (app Electron instalada, navegador,
+# túnel Cloudflare) pueda conectarse al backend.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.frontend_url, "http://localhost:3000", "http://localhost:5173"],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

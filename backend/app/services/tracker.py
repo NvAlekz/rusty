@@ -13,6 +13,7 @@ from app.services.steam_api import steam_service
 from app.services.steamid_resolver import steamid_resolver
 from app.services.risk_evaluator import risk_evaluator
 from app.services.log_parser import rust_log_parser
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -97,6 +98,20 @@ class TrackerService:
         if self._is_running:
             return
         self._is_running = True
+
+        # Modo servidor fijo: monitoriza siempre el servidor configurado,
+        # sin depender del log del cliente local.
+        if settings.target_server_ip:
+            logger.info(f"Modo servidor fijo: monitorizando {settings.target_server_ip}:{settings.target_server_port}")
+            self.current_server = ServerInfo(ip=settings.target_server_ip, port=settings.target_server_port)
+            self._connected_port = settings.target_server_port
+            self.players = []
+            await self.broadcast(WebSocketMessage(
+                type="server_connect",
+                payload={"server": self.current_server.model_dump(mode="json")}
+            ))
+            await self.refresh_players(background=True)
+            return
 
         async def handle(event: LogEvent):
             await self._on_log_event(event)
@@ -183,7 +198,11 @@ class TrackerService:
         """
         Re-lee el log completo para detectar el servidor aunque la conexión
         ocurriera antes de iniciar el tracker. Luego refresca los datos.
+        En modo servidor fijo, simplemente refresca el estado del servidor.
         """
+        if settings.target_server_ip:
+            await self.refresh_players(background=True)
+            return
         await rust_log_parser.rescan()
         await self.refresh_players(background=True)
 

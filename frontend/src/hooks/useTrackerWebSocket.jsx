@@ -1,6 +1,9 @@
 import { useEffect, useState, useRef } from 'react';
 
-const WS_URL = 'ws://localhost:8000/api/ws';
+// URL del WebSocket del backend. Configurable en el build vía VITE_WS_URL
+// (p.ej. wss://rusty.trycloudflare.com/api/ws cuando el backend esté remoto).
+const WS_URL =
+  import.meta.env.VITE_WS_URL || 'ws://localhost:8000/api/ws';
 
 /**
  * Hook para conectarse al WebSocket del backend y recibir

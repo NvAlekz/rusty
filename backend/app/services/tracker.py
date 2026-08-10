@@ -28,6 +28,7 @@ class TrackerService:
         self._websocket_connections = []
         self._query_task: Optional[asyncio.Task] = None
         self._refresh_task: Optional[asyncio.Task] = None
+        self._scheduled_task: Optional[asyncio.Task] = None
         self._connected_port: Optional[int] = None
         self._is_running = False
         self._lock = asyncio.Lock()
@@ -100,7 +101,7 @@ class TrackerService:
         self._is_running = True
 
         # Modo servidor fijo: monitoriza siempre el servidor configurado,
-        # sin depender del log del cliente local.
+        # sin depender del log del cliente local. Refresca periódicamente.
         if settings.target_server_ip:
             logger.info(f"Modo servidor fijo: monitorizando {settings.target_server_ip}:{settings.target_server_port}")
             self.current_server = ServerInfo(ip=settings.target_server_ip, port=settings.target_server_port)
@@ -110,6 +111,17 @@ class TrackerService:
                 type="server_connect",
                 payload={"server": self.current_server.model_dump(mode="json")}
             ))
+
+            async def periodic_refresh():
+                interval = max(10, settings.refresh_interval)
+                while self._is_running:
+                    await asyncio.sleep(interval)
+                    try:
+                        await self.refresh_players(background=True)
+                    except Exception as e:
+                        logger.error(f"Periodic refresh failed: {e}")
+
+            self._scheduled_task = asyncio.create_task(periodic_refresh())
             await self.refresh_players(background=True)
             return
 
@@ -121,6 +133,9 @@ class TrackerService:
 
     def stop_tracker(self):
         self._is_running = False
+        if self._scheduled_task and not self._scheduled_task.done():
+            self._scheduled_task.cancel()
+            self._scheduled_task = None
         rust_log_parser.stop_watching()
 
     # ----------------------------------------------------------------

@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     query_timeout: int = 5
     query_retries: int = 2
 
+    # Refresco automático: cada cuántos segundos se re-consulta el servidor
+    refresh_interval: int = 60
+
     # Servidor fijo (modo servidor): si target_server_ip está definido,
     # el tracker monitoriza SIEMPRE ese servidor, sin depender del log local.
     target_server_ip: str = ""

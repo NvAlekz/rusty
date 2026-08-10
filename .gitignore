@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Env & secrets (NUNCA subir)
+.env
+.env.*
+!.env.example
+
+# Builds
+frontend/dist/
+frontend/release/
+dist/
+release/
+
+# Electron
+frontend/*.log
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Vite
+*.local

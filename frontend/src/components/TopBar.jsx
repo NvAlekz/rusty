@@ -35,10 +35,10 @@ export default function TopBar({ connected, onRefresh, refreshing, activeTab, on
 
       <div className="topbar__right">
         <button
-          className="btn-cyan"
+          className="btn-cyan btn-cyan--icon"
           onClick={onRefresh}
           disabled={refreshing}
-          title={t('refresh')}
+          title={refreshing ? t('syncing') : t('refresh')}
         >
           <svg
             className={`btn-cyan__icon ${refreshing ? 'spinner' : ''}`}
@@ -51,7 +51,6 @@ export default function TopBar({ connected, onRefresh, refreshing, activeTab, on
           >
             <path d="M21 12a9 9 0 1 1-2.6-6.3M21 3v6h-6" />
           </svg>
-          {refreshing ? t('syncing') : t('refresh')}
         </button>
         <div className="winctrl">
           <button
@@ -90,8 +89,8 @@ function Logo() {
 
 function StatusPill({ connected, t }) {
   return (
-    <div className="status-pill">
-      <span className={`status-pill__dot ${connected ? 'status-pill__dot--on' : ''}`} />
+    <div className={`status-pill ${connected ? '' : 'status-pill--off'}`}>
+      <span className={`status-pill__dot ${connected ? 'status-pill__dot--on' : 'status-pill__dot--off'}`} />
       <span className="status-pill__text">{connected ? t('connected') : t('disconnected')}</span>
     </div>
   );

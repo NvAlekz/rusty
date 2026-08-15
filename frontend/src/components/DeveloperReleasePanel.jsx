@@ -7,8 +7,8 @@ export default function DeveloperReleasePanel() {
   const [owner, setOwner] = useState(PUBLISHER_CONFIG.githubOwner || UPDATE_CONFIG.githubOwner || 'GITHUB_OWNER');
   const [repo, setRepo] = useState(PUBLISHER_CONFIG.githubRepo || UPDATE_CONFIG.githubRepo || 'GITHUB_REPO');
   const [version, setVersion] = useState('1.0.0');
-  const [title, setTitle] = useState('Release title');
-  const [notes, setNotes] = useState('- Release notes here');
+  const [title, setTitle] = useState('Rusty v1.0.0');
+  const [notes, setNotes] = useState('- Actualizacion');
   const [token, setToken] = useState('');
   const [binaryPath, setBinaryPath] = useState('');
   const [status, setStatus] = useState(EMPTY_STATUS);

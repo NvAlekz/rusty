@@ -69,6 +69,8 @@ export default function SettingsPanel({ trackerStatus, connected }) {
           </span>
         </div>
       </div>
+
+      <DeveloperReleasePanel />
     </div>
   );
 }

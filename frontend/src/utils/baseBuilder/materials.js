@@ -10,7 +10,7 @@ export const MATERIAL_TIERS = {
 
 export const TIER_ORDER = ['twig', 'wood', 'stone', 'metal', 'hqm'];
 
-export const PREVIEW_COLOR = 0x38bdf8;
+export const PREVIEW_COLOR = 0xfb923c;
 
 const RESOURCE_LABELS = {
   wood: 'Madera',

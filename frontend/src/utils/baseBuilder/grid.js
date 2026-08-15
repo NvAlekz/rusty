@@ -63,7 +63,7 @@ export function createHoverHighlight(shape, pieceType) {
     geom = new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 0.02, 1));
   }
 
-  const material = new THREE.LineBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.9 });
+  const material = new THREE.LineBasicMaterial({ color: 0xf97316, transparent: true, opacity: 0.9 });
   const highlight = new THREE.LineSegments(geom, material);
   highlight.visible = false;
   highlight.renderOrder = 2;

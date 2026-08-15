@@ -46,10 +46,10 @@ function AppContent() {
 
   const renderContent = () => {
     if (!connected || !server) {
-      if (activeTab === 'raid' || activeTab === 'build') {
+      if (activeTab === 'raid' || activeTab === 'build' || activeTab === 'settings') {
         return renderOfflineTab();
       }
-      return <NoConnectionPanel onRefresh={handleRefresh} refreshing={refreshing} />;
+      return <NoConnectionPanel />;
     }
 
     switch (activeTab) {
@@ -70,6 +70,7 @@ function AppContent() {
   const renderOfflineTab = () => {
     if (activeTab === 'raid') return <RaidCalculator />;
     if (activeTab === 'build') return <BaseBuilder />;
+    if (activeTab === 'settings') return <SettingsPanel trackerStatus={trackerStatus} connected={connected} />;
     return null;
   };
 

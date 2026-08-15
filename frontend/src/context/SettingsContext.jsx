@@ -237,6 +237,12 @@ const SettingsContext = createContext(null);
 export function SettingsProvider({ children }) {
   const [settings, setSettings] = useState(loadSettings);
 
+  /* Opacidad del overlay publicada como variable CSS global:
+     solo los fondos grandes la consumen (el chrome de UI se mantiene sólido) */
+  useEffect(() => {
+    document.documentElement.style.setProperty('--overlay-alpha', String(settings.opacity));
+  }, [settings.opacity]);
+
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));

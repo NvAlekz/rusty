@@ -807,7 +807,7 @@ function RoofSvg(grad) {
 }
 
 function GarageDoorSvg({ armored }) {
-  const color = armored === 'armored' ? '#a78bfa' : armored === 'metal' ? '#60a5fa' : '#f59e0b';
+  const color = armored === 'armored' ? '#a78bfa' : armored === 'metal' ? '#94a3b8' : '#f59e0b';
   return <svg viewBox="0 0 48 48"><rect x="6" y="4" width="36" height="40" rx="2" fill={color} opacity="0.2"/><rect x="8" y="6" width="32" height="8" rx="2" fill={color}/><rect x="8" y="16" width="32" height="8" rx="2" fill={color} opacity="0.9"/><rect x="8" y="26" width="32" height="8" rx="2" fill={color} opacity="0.9"/><rect x="10" y="36" width="28" height="8" rx="2" fill={color} opacity="0.8"/><circle cx="32" cy="30" r="1.5" fill="#020"/></svg>;
 }
 
@@ -825,11 +825,11 @@ function ToolSvg() { return <svg viewBox="0 0 48 48"><rect x="20" y="24" width="
 
 function FlameSvg() { return <svg viewBox="0 0 48 48"><ellipse cx="24" cy="38" rx="10" ry="6" fill="#f97316"/><path d="M24 12 c-4 12-8 16-8 22 c0 4.4 3.6 8 8 8s8-3.6 8-8c0-4-2-8-8-22z" fill="#ea580c"/><path d="M24 20 c-3 8-6 10-6 14 c0 3.3 2.7 6 6 6s6-2.7 6-6c0-4-2-6-6-14z" fill="#fbbf24"/></svg> }
 
-function ExplosiveSvg() { return <svg viewBox="0 0 48 48"><rect x="10" y="14" width="28" height="22" rx="6" fill="#64748b"/><rect x="13" y="19" width="22" height="4" rx="1" fill="#334155"/><rect x="12" y="28" width="24" height="6" rx="2" fill="#22d3ee" opacity="0.8"/><rect x="26" y="4" width="2" height="12" rx="1" fill="#ef4444"/><circle cx="27" cy="5" r="3" fill="#fca5a5"/></svg> }
+function ExplosiveSvg() { return <svg viewBox="0 0 48 48"><rect x="10" y="14" width="28" height="22" rx="6" fill="#64748b"/><rect x="13" y="19" width="22" height="4" rx="1" fill="#334155"/><rect x="12" y="28" width="24" height="6" rx="2" fill="#f97316" opacity="0.8"/><rect x="26" y="4" width="2" height="12" rx="1" fill="#ef4444"/><circle cx="27" cy="5" r="3" fill="#fca5a5"/></svg> }
 
 function GrenadeSvg() { return <svg viewBox="0 0 48 48"><circle cx="24" cy="28" r="14" fill="#4b7280"/><rect x="20" y="14" width="8" height="2" rx="1" fill="#4b5563"/><rect x="21" y="8" width="6" height="6" rx="3" fill="#4b7280"/><circle cx="24" cy="34" r="6" fill="#64748b"/><line x1="18" y1="28" x2="30" y2="28" stroke="#4b5563" strokeWidth="1"/><line x1="15" y1="34" x2="33" y2="34" stroke="#4b5563" strokeWidth="1"/></svg> }
 
-function GenericBoxSvg() { return <svg viewBox="0 0 48 48"><rect x="6" y="8" width="36" height="32" rx="5" fill="none" stroke="#64748b" strokeWidth="1.5"/><path d="M17 18h14M17 28h14M17 32h6" stroke="#64748b" strokeWidth="1.2" opacity="0.6"/><circle cx="15" cy="12" r="1" fill="#22d3ee" opacity="0.5"/></svg> }
+function GenericBoxSvg() { return <svg viewBox="0 0 48 48"><rect x="6" y="8" width="36" height="32" rx="5" fill="none" stroke="#64748b" strokeWidth="1.5"/><path d="M17 18h14M17 28h14M17 32h6" stroke="#64748b" strokeWidth="1.2" opacity="0.6"/><circle cx="15" cy="12" r="1" fill="#f97316" opacity="0.5"/></svg> }
 
 function clamp(value, min, max) {
   if (!Number.isFinite(value)) return min;

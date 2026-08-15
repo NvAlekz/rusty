@@ -32,6 +32,8 @@ class TrackerService:
         self._connected_port: Optional[int] = None
         self._is_running = False
         self._lock = asyncio.Lock()
+        # Puertos de query A2S ya descubiertos por servidor (ip -> query port)
+        self._query_port_cache: Dict[str, int] = {}
 
     # ----------------------------------------------------------------
     # WebSocket management
@@ -141,28 +143,55 @@ class TrackerService:
     # ----------------------------------------------------------------
     # Player refresh
     # ----------------------------------------------------------------
+    # Offsets de puerto de query A2S respecto al puerto de juego, según host:
+    #   - 0: mismo puerto (la mayoría de servidores)
+    #   - +3: Rustafied / Gameserverkings (juego 28015 -> query 28018)
+    #   - +5: servidores con juego en 28010 y query en 28015
+    #   - +1, +2, -1: otros hosts
+    FALLBACK_PORT_OFFSETS = (0, 3, 5, 1, 2, -1)
+
     async def _query_with_port_fallback(self, server: ServerInfo):
         """
         Consulta el servidor probando puertos de query alternativos.
-        Muchos servidores de Rust usan puerto de juego 28010 pero
-        responden a A2S en 28015 (o 28016).
+        El puerto del log es el de JUEGO; el de query (A2S) suele diferir
+        según el host. El puerto descubierto se cachea por servidor para
+        que los refrescos siguientes vayan directos.
         """
-        candidate_ports = [server.port]
-        for fallback in (28015, 28016):
-            if fallback not in candidate_ports:
-                candidate_ports.append(fallback)
+        # 1. Puerto ya conocido: consulta directa
+        cached = self._query_port_cache.get(server.ip)
+        if cached:
+            info = await source_query_service.query_server(server.ip, cached)
+            if info:
+                return info, cached
+            self._query_port_cache.pop(server.ip, None)
 
-        # El puerto del log usa timeout completo; los fallbacks, timeout corto
+        # 2. Puerto de juego con timeout completo (caso más común)
         info = await source_query_service.query_server(server.ip, server.port)
         if info:
+            self._query_port_cache[server.ip] = server.port
             return info, server.port
 
+        # 3. Barrido en paralelo de puertos alternativos con timeout corto;
+        #    el primero que responda gana.
+        candidates = [server.port + off for off in self.FALLBACK_PORT_OFFSETS]
+        candidates += [p for p in (28015, 28016) if p not in candidates]
+        seen = set()
+        candidates = [
+            p for p in candidates
+            if 1 <= p <= 65535 and not (p in seen or seen.add(p))
+        ]
+
         fast_service = SourceQueryService(timeout=3, retries=1)
-        for port in candidate_ports[1:]:
-            info = await fast_service.query_server(server.ip, port)
-            if info:
-                logger.info(f"Server responded on query port {port} (game port was {server.port})")
-                return info, port
+        results = await asyncio.gather(
+            *[fast_service.query_server(server.ip, p) for p in candidates],
+            return_exceptions=True,
+        )
+        for port, res in zip(candidates, results):
+            if isinstance(res, Exception) or not res:
+                continue
+            logger.info(f"Server responded on query port {port} (game port was {server.port})")
+            self._query_port_cache[server.ip] = port
+            return res, port
         return None, server.port
 
     async def refresh_players(self, background: bool = False):

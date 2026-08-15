@@ -1,6 +1,6 @@
 {
     "name":  "rusty",
-    "version":  "1.1.0",
+    "version":  "1.0.0",
     "private":  true,
     "type":  "module",
     "main":  "electron/main.cjs",
@@ -26,7 +26,7 @@
                             "wait-on":  "^7.2.0"
                         },
     "author":  "Rust Tracker",
-    "description":  "Rusty electron overlay tracker for Rust game server monitoring and player risk detection.",
+    "description":  "Rusty - overlay tracker para Rust",
     "build":  {
                   "appId":  "com.rusty.app",
                   "productName":  "Rusty",

@@ -139,23 +139,7 @@ function deriveChecksumAsset(assets, releaseAsset) {
   return assets.find((asset) => candidateNames.some((name) => asset.name?.toLowerCase() === name.toLowerCase()));
 }
 
-async function getLatestRelease(owner, repo, fallbackJsonUrl) {
-  if (fallbackJsonUrl) {
-    const data = await fetchJson(fallbackJsonUrl, { headers: { 'User-Agent': USER_AGENT } });
-    if (!data.latestVersion || !data.downloadUrl) {
-      throw new Error('Fallback JSON no contiene latestVersion o downloadUrl');
-    }
-    return {
-      tagName: data.tagName || data.latestVersion,
-      latestVersion: data.latestVersion,
-      body: data.body || '',
-      publishedAt: data.publishedAt || new Date().toISOString(),
-      downloadUrl: data.downloadUrl,
-      checksumUrl: data.checksumUrl || null,
-    };
-  }
-
-  const release = await fetchLatestReleaseFromGithub(owner, repo);
+function releaseInfoFromGithubRelease(release) {
   const asset = selectAsset(release.assets);
   if (!asset) {
     throw new Error('No se encontró un asset adecuado en el release');
@@ -169,6 +153,46 @@ async function getLatestRelease(owner, repo, fallbackJsonUrl) {
     publishedAt: release.published_at || release.publishedAt || new Date().toISOString(),
     downloadUrl: asset.browser_download_url,
     checksumUrl: checksumAsset?.browser_download_url || null,
+  };
+}
+
+async function getLatestRelease(owner, repo, fallbackJsonUrl) {
+  const isGitHubConfigured =
+    owner && owner !== 'GITHUB_OWNER' && repo && repo !== 'GITHUB_REPO';
+
+  // Fuente principal: GitHub API. El fallback solo se usa si esta falla
+  // (p. ej. rate limit) o si no hay owner/repo configurados.
+  if (isGitHubConfigured) {
+    try {
+      const release = await fetchLatestReleaseFromGithub(owner, repo);
+      return releaseInfoFromGithubRelease(release);
+    } catch (error) {
+      if (!fallbackJsonUrl) throw error;
+    }
+  }
+
+  if (!fallbackJsonUrl) {
+    throw new Error('Actualización no configurada');
+  }
+
+  const data = await fetchJson(fallbackJsonUrl, { headers: { 'User-Agent': USER_AGENT } });
+
+  // El fallback también acepta una respuesta directa de la GitHub API
+  // (tag_name + assets) — cubre URLs tipo .../releases/latest.
+  if (data && data.tag_name && Array.isArray(data.assets)) {
+    return releaseInfoFromGithubRelease(data);
+  }
+
+  if (!data.latestVersion || !data.downloadUrl) {
+    throw new Error('Fallback JSON no contiene latestVersion o downloadUrl');
+  }
+  return {
+    tagName: data.tagName || data.latestVersion,
+    latestVersion: data.latestVersion,
+    body: data.body || '',
+    publishedAt: data.publishedAt || new Date().toISOString(),
+    downloadUrl: data.downloadUrl,
+    checksumUrl: data.checksumUrl || null,
   };
 }
 

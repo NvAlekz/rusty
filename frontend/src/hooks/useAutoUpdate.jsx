@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { UPDATE_CONFIG, isUpdateConfigured } from '../config/updateConfig';
 import { isSemVerGreater } from '../utils/semver';
 
@@ -9,6 +9,7 @@ const STORAGE_KEYS = {
 
 export function useAutoUpdate() {
   const [currentVersion, setCurrentVersion] = useState('0.0.0');
+  const [versionReady, setVersionReady] = useState(false);
   const [releaseInfo, setReleaseInfo] = useState(null);
   const [error, setError] = useState(null);
   const [checking, setChecking] = useState(false);
@@ -16,14 +17,26 @@ export function useAutoUpdate() {
   const [updateState, setUpdateState] = useState('idle');
   const [downloadedFilePath, setDownloadedFilePath] = useState(null);
 
+  // ID de petición: descarta respuestas de chequeos obsoletos (race conditions)
+  const checkRequestRef = useRef(0);
+
   useEffect(() => {
-    window.electronAPI?.getAppVersion()?.then(setCurrentVersion).catch(() => {});
+    window.electronAPI
+      ?.getAppVersion()
+      ?.then((v) => {
+        setCurrentVersion(v);
+        setVersionReady(true);
+      })
+      .catch(() => setVersionReady(true));
   }, []);
 
   useEffect(() => {
-    if (!currentVersion || !isUpdateConfigured()) return;
+    // Solo comprobar una vez que conocemos la versión real instalada;
+    // el valor inicial '0.0.0' provocaba falsos "actualización disponible".
+    if (!versionReady || !isUpdateConfigured()) return;
     checkForUpdate();
-  }, [currentVersion]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [versionReady]);
 
   useEffect(() => {
     const handleProgress = (_, progress) => {
@@ -43,6 +56,7 @@ export function useAutoUpdate() {
       return;
     }
 
+    const requestId = ++checkRequestRef.current;
     setChecking(true);
     setError(null);
 
@@ -52,6 +66,8 @@ export function useAutoUpdate() {
         repo: UPDATE_CONFIG.githubRepo,
         fallbackJsonUrl: UPDATE_CONFIG.fallbackReleaseJsonUrl,
       });
+
+      if (requestId !== checkRequestRef.current) return;
 
       if (!result || !result.latestVersion) {
         setReleaseInfo(null);
@@ -72,9 +88,12 @@ export function useAutoUpdate() {
 
       setReleaseInfo(result);
     } catch (err) {
+      if (requestId !== checkRequestRef.current) return;
       setError(err?.message || 'Update check failed');
     } finally {
-      setChecking(false);
+      if (requestId === checkRequestRef.current) {
+        setChecking(false);
+      }
     }
   }
 

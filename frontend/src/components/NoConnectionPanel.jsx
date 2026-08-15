@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useSettings } from '../context/SettingsContext';
 
 /* Letras del letrero: cada una con un "estado de tubo" distinto
@@ -30,21 +30,39 @@ const KIND_CLASS = {
   space: 'nc-let--space',
 };
 
+/* Chispas eléctricas que gotean de cada tubo fundido (letras muertas).
+   Configuración determinista: 5 chispas por N, se reutilizan para ambas.
+   Cada chispa: ancho/alto desigual (motion blur), deriva horizontal, ease-in. */
+const SPARK_CFG = [
+  { left: '14%', w: 1.5, h: 8,  fall: 18, drift: 4,  rot: 8,  dur: 2.0, delay: 0.55 },
+  { left: '32%', w: 2,   h: 10, fall: 26, drift: -3, rot: -6, dur: 3.2, delay: 1.15 },
+  { left: '52%', w: 1.5, h: 7,  fall: 12, drift: 5,  rot: 10, dur: 2.4, delay: 0.08 },
+  { left: '68%', w: 2,   h: 12, fall: 30, drift: -4, rot: -8, dur: 3.8, delay: 1.85 },
+  { left: '82%', w: 1,   h: 6,  fall: 16, drift: 2,  rot: 5,  dur: 2.2, delay: 1.55 },
+];
+
 export default function NoConnectionPanel() {
   const { t, opacity } = useSettings();
+  const audioRef = useRef(null);
+
+  /* Audio hook — zumbido eléctrico sutil, listo para reproducir.
+     Coloca tu archivo de sonido en: frontend/public/zap.mp3
+     (o cambia el src del <audio> de abajo por tu zap.wav/buzz.wav).
+     Volumen muy bajo (0.1) para que sea ambiente, no molesto. */
+  useEffect(() => {
+    const el = audioRef.current;
+    if (el) el.volume = 0.1;
+  }, []);
 
   return (
     <div
       className="nc"
-      /* Fondo con alpha dinámico: respeta la opacidad del overlay */
+      /* Fondo con alpha dinámico: hereda la opacidad global del overlay */
       style={{ backgroundColor: `rgba(11, 14, 20, ${opacity})` }}
     >
       <style>{NC_CSS}</style>
 
-      {/* Luz del neón proyectada sobre la "pared" oscura */}
-      <div className="nc-halo" aria-hidden="true" />
-
-      {/* Letrero de neón dañado */}
+      {/* Letrero de neón dañado (bloom 100% en text-shadow, sin cajas de gradiente) */}
       <h1 className="nc-neon">
         {LETTERS.map((l, i) => (
           <span
@@ -53,6 +71,26 @@ export default function NoConnectionPanel() {
             style={{ '--d': `${l.delay}s` }}
           >
             {l.ch === ' ' ? '\u00A0' : l.ch}
+            {l.kind === 'dead' && (
+              <span className="nc-sparks" aria-hidden="true">
+                {SPARK_CFG.map((s, j) => (
+                  <span
+                    key={j}
+                    className="nc-spark"
+                    style={{
+                      '--sl': s.left,
+                      '--sw': `${s.w}px`,
+                      '--sh': `${s.h}px`,
+                      '--fy': `${s.fall}px`,
+                      '--fx': `${s.drift}px`,
+                      '--fr': `${s.rot}deg`,
+                      '--dur': `${s.dur}s`,
+                      '--sd': `${s.delay}s`,
+                    }}
+                  />
+                ))}
+              </span>
+            )}
           </span>
         ))}
       </h1>
@@ -64,6 +102,11 @@ export default function NoConnectionPanel() {
         <span className="nc-scan__beam" />
         <span className="nc-scan__dot" />
       </div>
+
+      {/* Zumbido eléctrico (loop, volumen bajo) — lista para reproducir.
+          Coloca tu archivo en frontend/public/zap.mp3: Vite lo copia a
+          dist/zap.mp3 y el src relativo lo encuentra en producción. */}
+      <audio ref={audioRef} id="zap-sound" loop preload="none" src="zap.mp3" />
     </div>
   );
 }
@@ -94,9 +137,9 @@ const NC_CSS = `
   padding: 32px;
   text-align: center;
   overflow: hidden;
-  /* El color base con alpha dinámico viene por inline style.
-     El gradiente radial naranja va encima y se funde a transparente. */
-  background-image: radial-gradient(ellipse at 50% 44%, rgba(249, 115, 22, 0.07), transparent 62%);
+  /* SIN cajas de gradiente: el color base con alpha dinámico viene por
+     inline style y la luz del neón se hace 100% con text-shadow (bloom).
+     Solo queda la textura de ruido sutil de ::before. */
 }
 
 /* ---------- Textura de ruido EXTREMADAMENTE sutil (anti-plano) ---------- */
@@ -111,28 +154,7 @@ const NC_CSS = `
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* ---------- Halo del neón sobre la pared ---------- */
-
-.nc-halo {
-  position: absolute;
-  z-index: 0;
-  top: 50%;
-  left: 50%;
-  width: min(720px, 90vmin);
-  height: min(320px, 42vmin);
-  transform: translate(-50%, -50%);
-  background: radial-gradient(ellipse, rgba(249, 115, 22, 0.13), rgba(217, 119, 54, 0.05) 55%, transparent 75%);
-  filter: blur(14px);
-  pointer-events: none;
-  animation: nc-halo-pulse 6s ease-in-out infinite;
-}
-
-@keyframes nc-halo-pulse {
-  0%, 100% { opacity: 0.6; }
-  50%      { opacity: 1; }
-}
-
-/* ---------- Letrero de neón ---------- */
+/* ---------- Letrero de neón (bloom: luz 100% en text-shadow) ---------- */
 
 .nc-neon {
   position: relative;
@@ -148,12 +170,14 @@ const NC_CSS = `
   text-transform: uppercase;
   color: #ffe3c8;
   user-select: none;
-  --glow: 0 0 6px rgba(255, 173, 107, 0.95), 0 0 18px rgba(249, 115, 22, 0.6), 0 0 44px rgba(217, 119, 54, 0.35);
-  --glow-dim: 0 0 3px rgba(255, 173, 107, 0.4), 0 0 10px rgba(249, 115, 22, 0.25);
-  --glow-off: 0 0 2px rgba(249, 115, 22, 0.15);
+  /* Bloom multicapa: núcleo caliente + halo amplio, sin fondo de gradiente */
+  --glow: 0 0 4px #fff7ed, 0 0 10px #f97316, 0 0 24px #f97316, 0 0 48px #ea580c, 0 0 80px #c2410c;
+  --glow-dim: 0 0 3px rgba(255, 173, 107, 0.45), 0 0 10px rgba(249, 115, 22, 0.35), 0 0 24px rgba(234, 88, 12, 0.22);
+  --glow-off: 0 0 2px rgba(249, 115, 22, 0.18);
 }
 
 .nc-let {
+  position: relative;
   display: inline-block;
   text-shadow: var(--glow);
 }
@@ -170,6 +194,47 @@ const NC_CSS = `
 .nc-let--dead {
   color: #4a4540;
   text-shadow: none;
+}
+
+/* ---------- Chispas eléctricas goteando de los tubos fundidos ---------- */
+
+.nc-sparks {
+  position: absolute;
+  top: 96%;
+  left: 6%;
+  width: 88%;
+  height: 0;
+  pointer-events: none;
+}
+
+.nc-spark {
+  position: absolute;
+  top: 0;
+  left: var(--sl);
+  width: var(--sw);
+  height: var(--sh);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fff7ed 0%, #f97316 45%, #c2410c 100%);
+  box-shadow:
+    0 0 6px 2px rgba(249, 115, 22, 0.95),
+    0 0 14px 4px rgba(234, 88, 12, 0.7),
+    0 0 28px 6px rgba(194, 65, 12, 0.4);
+  opacity: 0;
+  transform-origin: center top;
+  animation: nc-spark-fall var(--dur, 2.4s) ease-in infinite;
+  animation-delay: var(--sd, 0s);
+}
+
+/* Caen con ease-in (gravedad), deriva horizontal y desvanecen */
+@keyframes nc-spark-fall {
+  0%   { opacity: 0; transform: translate3d(0, 0, 0) rotate(0deg) scaleY(0.6); }
+  6%   { opacity: 1; }
+  45%  { opacity: 0.9; }
+  70%  { opacity: 0.6; }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--fx, 0), var(--fy, 20px), 0) rotate(var(--fr, 12deg)) scaleY(0.3);
+  }
 }
 
 /* Parpadeo errático: caídas de voltaje + apagones breves */

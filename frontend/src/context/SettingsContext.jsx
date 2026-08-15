@@ -43,8 +43,7 @@ const translations = {
     build_reason_support: 'Sin soporte (coloca un cimiento/piso debajo)',
     build_previews: 'Válidos',
     noConnectionTitle: 'SIN CONEXIÓN',
-    noConnectionSub:
-      'Esperando detectar el servidor de Rust. Conéctate a un servidor y el tracker escaneará los logs del juego para cargar los datos.',
+    noConnectionSub: 'Esperando detectar el servidor de Rust...',
     settings_title: 'AJUSTES',
     settings_sub: 'DEL TRACKER',
     opacity_label: 'Opacidad del overlay',
@@ -146,8 +145,7 @@ const translations = {
     build_reason_support: 'No support (place a foundation/floor below)',
     build_previews: 'Valid spots',
     noConnectionTitle: 'NO CONNECTION',
-    noConnectionSub:
-      'Waiting to detect your Rust server. Join a server and the tracker will scan the game logs to load the data.',
+    noConnectionSub: 'Waiting to detect the Rust server...',
     settings_title: 'SETTINGS',
     settings_sub: 'TRACKER',
     opacity_label: 'Overlay opacity',
